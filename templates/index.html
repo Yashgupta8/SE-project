@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Attendance System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Face Recognition Attendance System</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Live Feed</h2>
+                <video id="video" class="w-full h-auto border border-gray-300 rounded" autoplay></video>
+                <div id="status" class="mt-4 text-lg font-medium text-center"></div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Attendance Dashboard</h2>
+                <div id="totalStudents" class="text-lg mb-2"></div>
+                <div id="presentStudents" class="text-lg mb-4"></div>
+                <div id="attendanceList" class="space-y-2"></div>
+            </div>
+        </div>
+        <div class="mt-8 text-center">
+            <a href="/attendance" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">View Full Attendance Records</a>
+        </div>
+    </div>
+    <script>
+        let presentStudents = new Set();
+
+        async function sendFrame() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append('image', blob, 'frame.jpg');
+
+                try {
+                    const response = await fetch('/process_frame', {
+                        method: 'POST',
+                        body: formData,
+                    });
+                    const result = await response.json();
+                    document.getElementById('status').textContent = result.status;
+                    if (result.status.startsWith('Attendance marked for')) {
+                        const studentName = result.status.split(' ').pop();
+                        presentStudents.add(studentName);
+                        updateAttendanceList();
+                    }
+                } catch (error) {
+                    console.error('Error sending frame:', error);
+                }
+            }, 'image/jpeg');
+        }
+
+        function updateAttendanceList() {
+            const attendanceList = document.getElementById('attendanceList');
+            attendanceList.innerHTML = '';
+            presentStudents.forEach(student => {
+                const div = document.createElement('div');
+                div.textContent = student;
+                div.className = 'bg-green-100 text-green-800 px-3 py-1 rounded';
+                attendanceList.appendChild(div);
+            });
+
+            document.getElementById('presentStudents').textContent = `Present: ${presentStudents.size}`;
+        }
+
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.getElementById('video');
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => video.play();
+                    setInterval(sendFrame, 5000); // Send frame every 5 seconds
+                })
+                .catch(err => {
+                    console.error('Error accessing the camera:', err);
+                });
+        }
+
+        function getTotalStudents() {
+            fetch('/get_all_students')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('totalStudents').textContent = `Total Students: ${data.length}`;
+                })
+                .catch(error => console.error('Error fetching total students:', error));
+        }
+
+        startCamera();
+        getTotalStudents();
+    </script>
+</body>
+</html>
