@@ -43,12 +43,22 @@ def encode_face(image):
     encoding = np.array(face_rec_model.compute_face_descriptor(rgb_frame, landmarks))
     return encoding
 
+# Dictionary to track when a student enters, for calculating exit times
+entry_times = {}
 
+# Mark attendance function (tracks entry and exit)
 def mark_attendance(name):
-    with open(attendance_file, "a") as file:
-        now = datetime.now()
-        dt_string = now.strftime('%Y-%m-%d %H:%M:%S')
-        file.write(f"{name},{dt_string}\n")
+    now = datetime.now()
+    dt_string = now.strftime('%Y-%m-%d %H:%M:%S')
+
+    # If the user already entered, mark them as exiting
+    if name in entry_times:
+        entry_time = entry_times.pop(name)
+        with open(attendance_file, "a") as file:
+            file.write(f"{name},{entry_time},{dt_string}\n")
+    else:
+        # Mark entry time if first time recognized
+        entry_times[name] = dt_string
 
 
 @app.route('/')
@@ -86,16 +96,37 @@ def process_frame():
 
     return jsonify(response)
 
-# Add this new route to your existing Flask app
+# Route to return all students (known individuals)
 @app.route('/get_all_students')
 def get_all_students():
     return jsonify(known_names)
+
+# Route to display attendance records
 @app.route('/attendance')
 def attendance():
     with open(attendance_file, 'r') as file:
         records = file.readlines()
     return render_template('attendance.html', records=records)
 
+# Admin route for stopping the server and generating the attendance list
+# Admin route for displaying the admin panel
+@app.route('/admin')
+def admin_page():
+    return render_template('admin.html')
+
+
+# Route to stop the server
+@app.route('/admin/stop_server', methods=['POST'])
+def stop_server():
+    shutdown_server()
+    return jsonify({"status": "Server shutting down"})
+
+# Helper function to shut down the Flask server
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+
+    if func:
+        func()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8000)

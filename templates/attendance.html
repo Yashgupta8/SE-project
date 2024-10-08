@@ -3,34 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Records</title>
+    <title>Attendance Records - IIIT Allahabad</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .btn {
+            transition: all 0.3s ease-in-out;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-gray-100">
+
+    <!-- Header Section -->
+    <nav class="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold">IIIT Allahabad</div>
+            <div class="text-lg">Prof. John Doe - Software Engineering</div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold text-center mb-8">Attendance Records</h1>
-        <div class="bg-white p-6 rounded-lg shadow-md overflow-x-auto">
-            <table class="w-full">
+        <h1 class="text-4xl font-bold text-center mb-12 text-gray-800">Attendance Records</h1>
+
+        <!-- Attendance Table Card -->
+        <div class="card p-6 rounded-lg overflow-x-auto">
+            <table class="min-w-full text-left">
                 <thead>
-                    <tr class="bg-gray-200">
-                        <th class="px-4 py-2 text-left">Name</th>
-                        <th class="px-4 py-2 text-left">Timestamp</th>
+                    <tr class="bg-gray-100">
+                        <th class="px-6 py-4 font-semibold text-gray-700">Name</th>
+                        <th class="px-6 py-4 font-semibold text-gray-700">Timestamp</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for record in records %}
                         {% set parts = record.split(',') %}
-                        <tr class="{% if loop.index is even %}bg-gray-50{% endif %}">
-                            <td class="border px-4 py-2">{{ parts[0] }}</td>
-                            <td class="border px-4 py-2">{{ parts[1] }}</td>
+                        <tr class="{% if loop.index is even %}bg-gray-50{% else %}bg-white{% endif %}">
+                            <td class="px-6 py-4 border-b border-gray-200 text-gray-800">{{ parts[0] }}</td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-gray-600">{{ parts[1] }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Back Button -->
         <div class="mt-8 text-center">
-            <a href="/" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300">Back to Live Feed</a>
+            <a href="/" class="btn bg-purple-600 text-white px-8 py-3 rounded-full hover:bg-purple-700 transition duration-300 text-lg font-semibold">Back to Live Feed</a>
         </div>
     </div>
+
 </body>
 </html>
