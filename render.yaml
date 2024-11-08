@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: flask-attendance-app
+    env: python
+    region: oregon  # Adjust based on your preference or location
+    buildCommand: |
+      apt-get update && \
+      apt-get install -y cmake && \
+      apt-get install -y python3-dev && \
+      apt-get install -y libgl1-mesa-glx && \
+      pip install -r requirements.txt
+    startCommand: "python app.py"
+    envVars:
+      - key: FLASK_ENV
+        value: production
+    plan: free  # Change to 'starter' or another appropriate plan based on your needs
+    healthCheckPath: "/"
+    disk:
+      name: known-faces-volume
+      sizeGB: 1  # Adjust storage size as per requirement
