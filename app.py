@@ -4,7 +4,9 @@ import cv2
 import dlib
 import numpy as np
 from datetime import datetime
+import json
 from PIL import Image
+from collections import defaultdict
 
 app = Flask(__name__)
 
@@ -31,7 +33,6 @@ for filename in os.listdir(known_faces_dir):
             known_faces.append(encoding)
             known_names.append(os.path.splitext(filename)[0])
 
-
 def encode_face(image):
     img = np.array(image)
     rgb_frame = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -44,27 +45,83 @@ def encode_face(image):
     return encoding
 
 # Dictionary to track when a student enters, for calculating exit times
-entry_times = {}
+daily_attendance = defaultdict(dict)
 
-# Mark attendance function (tracks entry and exit)
+def get_date_string():
+    return datetime.now().strftime('%Y-%m-%d')
+
+def get_attendance_list():
+    # Read the CSV file and process it into unique daily records
+    daily_records = defaultdict(lambda: defaultdict(dict))
+    
+    try:
+        with open(attendance_file, "r") as file:
+            for line in file:
+                name, entry_time, exit_time = line.strip().split(',')
+                entry_datetime = datetime.strptime(entry_time, '%Y-%m-%d %H:%M:%S')
+                exit_datetime = datetime.strptime(exit_time, '%Y-%m-%d %H:%M:%S')
+                date = entry_datetime.strftime('%Y-%m-%d')
+                
+                # If this person doesn't have a record for this date yet
+                if name not in daily_records[date]:
+                    daily_records[date][name] = {
+                        "name": name,
+                        "date": date,
+                        "entry_time": entry_time,
+                        "exit_time": exit_time
+                    }
+                else:
+                    # Update entry time if this entry is earlier
+                    current_entry = datetime.strptime(daily_records[date][name]["entry_time"], 
+                                                    '%Y-%m-%d %H:%M:%S')
+                    if entry_datetime < current_entry:
+                        daily_records[date][name]["entry_time"] = entry_time
+                    
+                    # Update exit time if this exit is later
+                    current_exit = datetime.strptime(daily_records[date][name]["exit_time"], 
+                                                   '%Y-%m-%d %H:%M:%S')
+                    if exit_datetime > current_exit:
+                        daily_records[date][name]["exit_time"] = exit_time
+
+    except FileNotFoundError:
+        print(f"No attendance file found at {attendance_file}")
+    except Exception as e:
+        print(f"Error reading attendance file: {str(e)}")
+
+    # Convert the nested defaultdict to a list of records
+    attendance_list = []
+    for date in daily_records:
+        attendance_list.extend(list(daily_records[date].values()))
+    
+    # Sort by date and then by name
+    attendance_list.sort(key=lambda x: (x["date"], x["name"]))
+    return attendance_list
+
 def mark_attendance(name):
     now = datetime.now()
     dt_string = now.strftime('%Y-%m-%d %H:%M:%S')
+    current_date = get_date_string()
 
-    # If the user already entered, mark them as exiting
-    if name in entry_times:
-        entry_time = entry_times.pop(name)
+    if name in daily_attendance[current_date]:
+        # Update exit time for existing entry
+        entry_time = daily_attendance[current_date][name]
         with open(attendance_file, "a") as file:
             file.write(f"{name},{entry_time},{dt_string}\n")
+        # Clear the entry from daily_attendance after recording exit
+        del daily_attendance[current_date][name]
     else:
-        # Mark entry time if first time recognized
-        entry_times[name] = dt_string
-
+        # Mark new entry time
+        daily_attendance[current_date][name] = dt_string
+    
+    # Get and print the updated attendance list
+    attendance_list = get_attendance_list()
+    print("\nCurrent Attendance List:")
+    print(json.dumps(attendance_list, indent=2))
+    return attendance_list
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/process_frame', methods=['POST'])
 def process_frame():
@@ -87,8 +144,11 @@ def process_frame():
         min_distance_index = np.argmin(matches)
         if matches[min_distance_index] < 0.6:
             name = known_names[min_distance_index]
-            mark_attendance(name)
-            response = {'status': f'Attendance marked for {name}'}
+            attendance_list = mark_attendance(name)
+            response = {
+                'status': f'Attendance marked for {name}',
+                'attendance_list': attendance_list
+            }
         else:
             response = {'status': 'Unknown'}
     else:
@@ -96,35 +156,66 @@ def process_frame():
 
     return jsonify(response)
 
-# Route to return all students (known individuals)
 @app.route('/get_all_students')
 def get_all_students():
     return jsonify(known_names)
 
-# Route to display attendance records
 @app.route('/attendance')
 def attendance():
-    with open(attendance_file, 'r') as file:
-        records = file.readlines()
-    return render_template('attendance.html', records=records)
+    date_filter = request.args.get('date', None)
+    attendance_list = get_attendance_list()
+    
+    # Apply date filter if provided
+    if date_filter:
+        attendance_list = [record for record in attendance_list if record['date'] == date_filter]
+    
+    # Sort records by date and time
+    sorted_records = sorted(
+        attendance_list,
+        key=lambda x: (x['date'], x['entry_time']),
+        reverse=True  # Most recent first
+    )
+    
+    # Get current date for statistics
+    current_date = datetime.now().strftime('%Y-%m-%d')
+    
+    return render_template(
+        'attendance.html',
+        records=sorted_records,
+        current_date=current_date
+    )
 
-# Admin route for stopping the server and generating the attendance list
-# Admin route for displaying the admin panel
+@app.route('/get_attendance_json')
+def get_attendance_json():
+    attendance_list = get_attendance_list()
+    return jsonify(attendance_list)
+
+@app.route('/get_daily_attendance')
+def get_daily_attendance():
+    date = request.args.get('date', get_date_string())
+    attendance_list = get_attendance_list()
+    daily_records = [record for record in attendance_list if record['date'] == date]
+    return jsonify(daily_records)
+
 @app.route('/admin')
 def admin_page():
     return render_template('admin.html')
 
-
-# Route to stop the server
 @app.route('/admin/stop_server', methods=['POST'])
 def stop_server():
+    # Print final attendance list before shutting down
+    attendance_list = get_attendance_list()
+    print("\nFinal Attendance List:")
+    print(json.dumps(attendance_list, indent=2))
+    
     shutdown_server()
-    return jsonify({"status": "Server shutting down"})
+    return jsonify({
+        "status": "Server shutting down",
+        "final_attendance": attendance_list
+    })
 
-# Helper function to shut down the Flask server
 def shutdown_server():
     func = request.environ.get('werkzeug.server.shutdown')
-
     if func:
         func()
 

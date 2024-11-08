@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - IIIT Allahabad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease-in-out;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Header Section -->
+    <nav class="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold">IIIT Allahabad - Admin Panel</div>
+            <div class="text-lg">Admin Dashboard</div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-12 text-gray-800">Admin Panel</h1>
+
+        <!-- Admin Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Stop Server Card -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Stop Server</h2>
+                <p class="mb-4 text-gray-600">Click the button below to stop the server and finalize attendance records.</p>
+                <form action="/admin/stop_server" method="post">
+                    <button type="submit" class="btn bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition duration-300 text-lg font-semibold">Stop Server</button>
+                </form>
+            </div>
+
+            <!-- Attendance Records Card -->
+            <div class="card p-6">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Attendance Records</h2>
+                <p class="mb-4 text-gray-600">View and manage the attendance records of students.</p>
+                <a href="/attendance" class="btn bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300 text-lg font-semibold">View Attendance</a>
+            </div>
+        </div>
+
+        <!-- Back to Live Feed Button -->
+        <div class="mt-8 text-center">
+            <a href="/" class="btn bg-purple-600 text-white px-8 py-3 rounded-full hover:bg-purple-700 transition duration-300 text-lg font-semibold">Back to Live Feed</a>
+        </div>
+    </div>
+
+</body>
+</html>
