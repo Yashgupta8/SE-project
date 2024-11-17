@@ -1,0 +1,18 @@
+2024-11-17 18:36:54,355 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:8000
+2024-11-17 18:36:54,356 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2024-11-17 18:36:54,359 - werkzeug - INFO -  * Restarting with stat
+2024-11-17 18:36:55,007 - werkzeug - WARNING -  * Debugger is active!
+2024-11-17 18:36:55,014 - werkzeug - INFO -  * Debugger PIN: 795-655-854
+2024-11-17 18:37:03,095 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:03] "GET / HTTP/1.1" 200 -
+2024-11-17 18:37:05,013 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:05] "GET /get_all_students HTTP/1.1" 200 -
+2024-11-17 18:37:19,849 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:19] "GET /get_attendance_json HTTP/1.1" 200 -
+2024-11-17 18:37:19,861 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:19] "GET /get_attendance_json HTTP/1.1" 200 -
+2024-11-17 18:37:20,320 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:20] "GET /get_attendance_json HTTP/1.1" 200 -
+2024-11-17 18:37:20,331 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:20] "GET /get_attendance_json HTTP/1.1" 200 -
+2024-11-17 18:37:20,598 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:20] "GET /get_attendance_json HTTP/1.1" 200 -
+2024-11-17 18:37:20,612 - werkzeug - INFO - 127.0.0.1 - - [17/Nov/2024 18:37:20] "GET /get_attendance_json HTTP/1.1" 200 -
+2024-11-17 18:37:51,692 - werkzeug - INFO -  * Detected change in 'C:\\Users\\yashg\\Downloads\\New folder (2)\\SE-project\\app.py', reloading
+2024-11-17 18:37:51,823 - werkzeug - INFO -  * Restarting with stat
+2024-11-17 18:38:05,894 - werkzeug - INFO -  * Restarting with stat
+2024-11-17 18:38:22,693 - werkzeug - INFO -  * Restarting with stat

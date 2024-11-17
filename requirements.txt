@@ -1,4 +1,5 @@
 Flask==2.3.2  # Use a version suitable for your project
 numpy==1.24.2
 opencv-python==4.5.5.64  # Modify based on compatibility, if needed
+# dlib==19.17.0  # This version often works more reliably
 Pillow==9.5.0  # For image processing

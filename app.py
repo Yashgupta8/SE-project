@@ -1,14 +1,24 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 import os
 import cv2
-import dlib
+import dlib 
 import numpy as np
 from datetime import datetime
 import json
+import pandas as pd
 from PIL import Image
 from collections import defaultdict
 
+
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app)  # This will allow all domains by default
+
+CORS(app, origins=["http://localhost:5500"])
+from flask_cors import cross_origin
+
+
 
 # Initialize dlib's face detector and models
 detector = dlib.get_frontal_face_detector()
@@ -186,6 +196,7 @@ def attendance():
     )
 
 @app.route('/get_attendance_json')
+@cross_origin()
 def get_attendance_json():
     attendance_list = get_attendance_list()
     return jsonify(attendance_list)
@@ -201,13 +212,36 @@ def get_daily_attendance():
 def admin_page():
     return render_template('admin.html')
 
+@app.route('/download_attendance', methods=['GET'])
+def download_attendance():
+    # Get the attendance list
+    attendance_list = get_attendance_list()
+
+    # Save the attendance list to an Excel file
+    output_path = 'final_attendance.xlsx'
+    if attendance_list:
+        df = pd.DataFrame(attendance_list)
+        df.to_excel(output_path, index=False)
+        print(f"Final attendance saved to {output_path}")
+    
+    # Send the file as an attachment for download
+    return send_file(output_path, as_attachment=True, download_name="final_attendance.xlsx")
+
 @app.route('/admin/stop_server', methods=['POST'])
 def stop_server():
-    # Print final attendance list before shutting down
+    # Get and print the final attendance list
     attendance_list = get_attendance_list()
     print("\nFinal Attendance List:")
     print(json.dumps(attendance_list, indent=2))
     
+    # Save attendance list to an Excel file
+    if attendance_list:
+        df = pd.DataFrame(attendance_list)
+        output_path = 'final_attendance.xlsx'
+        df.to_excel(output_path, index=False)
+        print(f"Final attendance saved to {output_path}")
+    
+    # Shutdown the server
     shutdown_server()
     return jsonify({
         "status": "Server shutting down",
